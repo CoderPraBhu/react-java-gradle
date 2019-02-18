@@ -1,8 +1,11 @@
 import org.apache.tools.ant.taskdefs.condition.Os
 
 plugins {
+    id 'war'
+    id 'eclipse-wtp'
     id 'java-library'
     id "com.moowork.node" version "1.2.0"
+    id 'org.gretty' version '2.2.0'
 }
 
 repositories {
@@ -12,7 +15,20 @@ repositories {
 dependencies {
 //    api 'org.apache.commons:commons-math3:3.6.1'
 //    implementation 'com.google.guava:guava:26.0-jre'
-//    testImplementation 'junit:junit:4.12'
+	providedCompile 'javax.servlet:javax.servlet-api:3.1.0'
+    testImplementation 'junit:junit:4.12'
+}
+targetCompatibility = '8'
+sourceCompatibility = '8'
+war {
+	from ('build/js', {
+            into 'js'
+        })
+	webInf { from 'src/additionalWebInf' }
+	//exclude "html"
+	//from( "${buildDir}/js", {
+     //       into 'js'
+    //    })
 }
 def nodeVersion = '8.0.0'
 ext.configureNode =  { -> 
@@ -36,4 +52,12 @@ task webpack(type: Exec, dependsOn: 'npmInstallation') {
 	outputs.dir("$buildDir/js")
 	outputs.cacheIf { true }
     commandLine "$projectDir/node_modules/.bin/" + (Os.isFamily(Os.FAMILY_WINDOWS) ? "webpack.cmd" : "webpack"), "src/main/webapp/js/index.js", "$buildDir/js/webappbundle.js"
+}
+war.dependsOn webpack
+eclipse {
+	wtp {
+		component {
+			resource sourcePath: "build/js", deployPath: "/js"
+		}
+	}
 }
