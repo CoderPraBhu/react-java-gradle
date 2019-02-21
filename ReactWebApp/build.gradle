@@ -1,5 +1,4 @@
 import org.apache.tools.ant.taskdefs.condition.Os
-
 plugins {
     id 'war'
     id 'eclipse-wtp'
@@ -7,11 +6,11 @@ plugins {
     id "com.moowork.node" version "1.2.0"
     id 'org.gretty' version '2.2.0'
 }
-
 repositories {
     jcenter()
 }
-
+targetCompatibility = '8'
+sourceCompatibility = '8'
 dependencies {
 	providedCompile 'javax.servlet:javax.servlet-api:3.1.0'
 	testCompile 'org.mockito:mockito-core:2.24.5'
@@ -24,9 +23,6 @@ test {
         excludeTags 'slow'
     }
 }
-
-targetCompatibility = '8'
-sourceCompatibility = '8'
 war {
 	from ('build/js', {
             into 'js'
@@ -41,7 +37,7 @@ ext.configureNode =  { ->
       nodeModulesDir = file("${projectDir}")
     }
 }
-task npmInstallation(type: NpmTask, dependsOn: 'npmInstall') {
+task npmInstallation(type: NpmTask) {
     configureNode()
     inputs.file('package.json')
     outputs.upToDateWhen { file('node_modules').exists() }
@@ -49,13 +45,13 @@ task npmInstallation(type: NpmTask, dependsOn: 'npmInstall') {
 }
 task webpack(type: Exec, dependsOn: 'npmInstallation') { 
 	group = "node"
-	description = 'runs custom webpack command, creates node_module if required'
+	description = 'runs custom webpack command, creates node_modules if required'
 	inputs.file("package-lock.json").withPathSensitivity(PathSensitivity.RELATIVE)
+	inputs.file("webpack.config.js").withPathSensitivity(PathSensitivity.RELATIVE)
 	inputs.dir("src/main/webapp/").withPathSensitivity(PathSensitivity.RELATIVE)
 	outputs.dir("$buildDir/js")
 	outputs.cacheIf { true }
 	commandLine "$projectDir/node_modules/.bin/" + (Os.isFamily(Os.FAMILY_WINDOWS) ? "webpack.cmd" : "webpack")
-//    commandLine "$projectDir/node_modules/.bin/" + (Os.isFamily(Os.FAMILY_WINDOWS) ? "webpack.cmd" : "webpack"), "src/main/webapp/js/index.js", "$buildDir/js/webappbundle.js"
 }
 war.dependsOn webpack
 eclipse {
