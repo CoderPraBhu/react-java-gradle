@@ -43,17 +43,30 @@ task npmInstallation(type: NpmTask) {
     outputs.upToDateWhen { file('node_modules').exists() }
     npmCommand = ['install']
 }
-task webpack(type: Exec, dependsOn: 'npmInstallation') { 
-	group = "node"
-	description = 'runs custom webpack command, creates node_modules if required'
+
+task webpackProd(type: Exec, dependsOn: 'npmInstallation') { 
 	inputs.file("package-lock.json").withPathSensitivity(PathSensitivity.RELATIVE)
-	inputs.file("webpack.config.js").withPathSensitivity(PathSensitivity.RELATIVE)
+	inputs.file("webpack.common.js").withPathSensitivity(PathSensitivity.RELATIVE)
+	inputs.file("webpack.dev.js").withPathSensitivity(PathSensitivity.RELATIVE)
+	inputs.file("webpack.prod.js").withPathSensitivity(PathSensitivity.RELATIVE)
 	inputs.dir("src/main/webapp/").withPathSensitivity(PathSensitivity.RELATIVE)
 	outputs.dir("$buildDir/js")
 	outputs.cacheIf { true }
-	commandLine "$projectDir/node_modules/.bin/" + (Os.isFamily(Os.FAMILY_WINDOWS) ? "webpack.cmd" : "webpack")
+	group = "node"
+	commandLine "$projectDir/node_modules/.bin/" + (Os.isFamily(Os.FAMILY_WINDOWS) ? "webpack.cmd" : "webpack"), "--config","webpack.prod.js"
 }
-war.dependsOn webpack
+task webpackDev(type: Exec, dependsOn: 'npmInstallation') { 
+	inputs.file("package-lock.json").withPathSensitivity(PathSensitivity.RELATIVE)
+	inputs.file("webpack.common.js").withPathSensitivity(PathSensitivity.RELATIVE)
+	inputs.file("webpack.dev.js").withPathSensitivity(PathSensitivity.RELATIVE)
+	inputs.file("webpack.prod.js").withPathSensitivity(PathSensitivity.RELATIVE)
+	inputs.dir("src/main/webapp/").withPathSensitivity(PathSensitivity.RELATIVE)
+	outputs.dir("$buildDir/js")
+	outputs.cacheIf { true }
+	group = "node"
+	commandLine "$projectDir/node_modules/.bin/" + (Os.isFamily(Os.FAMILY_WINDOWS) ? "webpack.cmd" : "webpack"), "--config","webpack.dev.js"
+}
+war.dependsOn webpackProd
 eclipse {
 	wtp {
 		component {
