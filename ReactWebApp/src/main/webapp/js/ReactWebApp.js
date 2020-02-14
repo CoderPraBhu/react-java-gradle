@@ -88,7 +88,7 @@ class Toggle extends React.Component {
 //Toggle end
 //Login logout start
 function UserGreeting(props) {
-  return <h1>Welcome back!</h1>;
+  return <h1>Welcome back to the demo website!</h1>;
 }
 function GuestGreeting(props) {
   return <h1>Please sign up.</h1>;
